@@ -1,0 +1,70 @@
+$Challenge = Read-Host "This process will delete Temporary files adn cache, might take 15m or so, are you sure you have the time?"
+$Challenge = $Challenge.ToUpper()
+if ($Challenge -eq "N"){
+Stop-Process -Id $PD
+}elseif ($challenge -eq "Y"){
+Write-Host "Stopping Teams"-ForegroundColor Yellow
+try{
+Get-Process -ProcessName Teams | Stop-Process -Force
+Start-Sleep -Seconds 3
+Write-Host "Teams Stopped" -ForegroundColor Red
+}catch{
+echo$_
+}
+try{
+Get-ChildItem -Path $env:APPDATA\"Microsoft\Teams\blob_storage" | Remove-Item -Confirm:$false
+Get-ChildItem -Path $env:APPDATA\"Microsoft\Teams\databases" | Remove-Item -Confirm:$false
+Get-ChildItem -Path $env:APPDATA\"Microsoft\Teams\cache" | Remove-Item -Confirm:$false
+Get-ChildItem -Path $env:APPDATA\"Microsoft\Teams\blob_storage" | Remove-Item -Confirm:$false
+Get-ChildItem -Path $env:APPDATA\"Microsoft\Teams\GPUCache" | Remove-Item -Confirm:$false
+Get-ChildItem -Path $env:APPDATA\"Microsoft\Teams\tmp" | Remove-Item -Confirm:$false
+Get-ChildItem -Path $env:APPDATA\"Microsoft\Teams\IndexedDB" | Remove-Item -Confirm:$false
+Get-ChildItem -Path $env:APPDATA\"Microsoft\Teams\Local Storage" | Remove-Item -Confirm:$false
+Write-Host "Teams Cache Cleaned" -ForegroundColor Green
+}catch{
+echo $_
+ }
+ Write-Host "Stopping The IE Process" -ForegroundColor Red
+ try{
+ Get-Process -ProcessName iexplore | Stop-Process -Force
+ Start-Sleep -Seconds 3
+ Write-Host "IE Stopped"-ForegroundColor Green
+ }catch{
+ echo $_
+ }
+try{
+Write-Host "Killing Edge" -ForegroundColor Yellow
+Get-Process -ProcessName msedge | Stop-Process -Force
+Start-Sleep -Seconds 3 
+Write-Host "Succesfully Stopped Edge" -ForegroundColor Green
+}catch{
+echo $_
+}
+try{
+RunDll32.exe InetCpl.cpl, ClearMyTracksByProcess 8
+RunDll32.exe InetCpl.cpl, ClearMyTracksByProcess 2
+Write-Host "Fleared IE" -ForegroundColor Green
+}catch{
+echo $_
+}
+Write-Host "Clearing RecycleBin" -ForegroundColor Yellow
+try{
+Clear-RecycleBin -Force -Verbose
+Write-Host "Cleared Bin"-ForegroundColor Green
+}catch{
+echo $_
+}
+Write-Host "Preparing to Optimize system Disk" -ForegroundColor DarkYellow
+try{
+Optimize-Volume -DriveLetter C -ReTrim -Verbose
+Optimize-Volume -DriveLetter C -Defrag -Verbose
+Optimize-Volume -DriveLetter C -Analyze -Verbose
+}catch{
+echo $_
+}
+Write-Host "Cleanup Complete" -ForegroundColor Green
+Start-Process -FilePath $env:LOCALAPPDATA\Microsoft\Teams\current\Teams.exe
+Stop-Process -Id $PID
+}else{
+Stop-Process -Id $PID
+}
